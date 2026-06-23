@@ -1,0 +1,57 @@
+model:
+  backbone: swin_tiny_patch4_window7_224
+  pretrained: true
+  neck:
+    ppm_channels: 96
+    ppm_in_channels: 768
+    ppm_scales: [1, 2, 3, 6]
+  decoder:
+    type: simple             # 'simple' or 'ibr'
+    hidden_channels: [64, 32]
+    num_classes: 1
+
+data:
+  input_size: 320
+  backbone_input_size: 224   # Swin-T native resolution
+  num_train: 1850
+  num_test: 950
+  batch_size: 8
+  num_workers: 2
+  augment:
+    rotation: true
+    grid_distortion: true
+    grid_size: 5
+    random_brightness: true
+
+training:
+  seed: 42
+  device: cuda
+  mixed_precision: true
+  log_interval: 20
+  save_dir: ./checkpoints
+  log_dir: ./logs
+
+  fpt:
+    epochs: 10               # Use small number for testing; set 300 for full
+    lr: 0.003
+    momentum: 0.9
+    weight_decay: 0.0005
+    warmup_epochs: 5
+    scheduler: cosine        # cosine or step
+    loss: dice
+
+  ibr:
+    enabled: false           # IBR refinement (optional, second phase)
+    epochs: 5
+    lr: 0.001
+    momentum: 0.9
+    weight_decay: 0.0005
+    warmup_epochs: 3
+    scheduler: cosine
+    bce_weight: 1.0
+    ce_weight: 1.0
+
+eval:
+  threshold: 0.5
+  save_predictions: true
+  max_vis_samples: 16
